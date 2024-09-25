@@ -1,0 +1,113 @@
+%
+{
+
+    /* AUTOR: David Peñasco Puertas y Sergio Buil Laliena
+
+    Usando flex crear un programa para procesar diagramas UML en la
+    sintaxis de https://nomnoml.com/
+
+    Realizando las operaciones necesarias para que al finalizar el
+    procesado permita mostrar las siguientes estadísticas:
+    - el número de paquetes
+    - el número de relaciones/asociaciones (las notas no cuentan)
+    - el nombre de la clase con mayor número de atributos miembro
+    - el método que más argumentos tiene
+
+    Sólo debe tratar diagramas de clases y paquetes, los demás
+    diagramas (componentes, flujo...) deberán ser ignorados así como
+    los comentarios en línea (precedidos de //).
+
+    Se valorará el uso de definiciones regulares, correcto uso de
+    las expresiones regulares, calidad del código, etc.
+
+    El analizador debe ser capaz de analizar tanto la entrada estándar
+    como un fichero de texto que reciba como argumento.
+*/
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+#define CP(from, to)       \
+    {                      \
+        free(from);        \
+        from = strdup(to); \
+    }
+    void process_file(const char *filename);
+    int packages = 0, relaciones = 0, numAtributos = 0, numParametros = 0;
+    char *claseConMasAtributos, *metodoConMasParametros;
+    %
+}
+
+sp[\ \t] *
+        spn[\ \t\n] *
+        % x CLASS DECS ATRS OPS
+
+        % %
+
+    < INITIAL > "[" BEGIN(CLASS);
+< CLASS > "<" BEGIN(DECS);
+< CLASS > "|" BEGIN(ATRS);
+< CLASS > "]" BEGIN(INITIAL);
+< DECS > ">" yy_pop_state();
+< ATRS > "]" BEGIN(INITIAL);
+< ATRS > "|" BEGIN(OPS);
+< OPS > "}" BEGIN(INITIAL);
+
+< * > "<package>" { packages++; };
+< INITIAL > "-" | "->" | "<->" | "-->" | "<-->" | "-:>" | "--:>" | "+-" | "+->" | "o-" | "o->" | "-o)" | "o<-)" | "->o" { relaciones++; };
+<DECS>.+
+{
+    if (numAtributos < strlen(yytext))
+    {
+        CP(claseConMasAtributos, yytext);
+        numAtributos = strlen(yytext);
+        if (numAtributos > numMaxAtributos)
+        {
+            numMaxAtributos = numAtributos;
+        }
+    }
+};
+<OPS>.+
+{
+    if (numParametros < strlen(yytext))
+    {
+        CP(metodoConMasParametros, yytext);
+        numMaxParametros = numParametros;
+    }
+};
+<ATRS>.+ ;
+"//".*\n;
+.\n *{};
+% %
+    void process_file(const char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    if (!file)
+    {
+        fprintf(stderr, "No se pudo abrir el archivo: %s\n", filename);
+        exit(1);
+    }
+    yyin = file;
+    yylex();
+    fclose(file);
+}
+
+int main(int argc, char **argv)
+{
+    if (argc > 1)
+    {
+        process_file(argv[1]);
+    }
+    else
+    {
+        yylex();
+    }
+
+    printf("- Existe/n : %d paquete/s.\n", packages);
+    printf("- Hay %d relaciones entre elementos.\n", relaciones);
+    printf("- La clase %s tiene %d atributos.\n", claseConMasAtributos, numMaxAtributos);
+    printf("El método %s tiene %d parámetros.", metodoConMasParametros, numMaxParametros);
+
+    return 0;
+}
