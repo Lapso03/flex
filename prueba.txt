@@ -1,0 +1,6 @@
+[<package> Modelo | 
+[Tablero | -matriz : Celda | + Tablero (filas: int, columnas: int) ; + toString() ] -> 
+[Celda | | + Celda( coordenada : Coordenada) ] -> [ 
+Pieza | | +Pieza (color:Color)]->[Color]
+[Jugador|nombre:String|Jugador(nombre:String,color:Color)]->[Color||]
+[Celda] -> [Coordenada] ]

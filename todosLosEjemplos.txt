@@ -1,0 +1,86 @@
+// Ejemplo 1
+[<package> Sistema | 
+    [Usuario | -nombre: String; -edad: int | +login(): bool]
+    [Administrador | +agregarUsuario(user: Usuario) | ] -> [Usuario]
+]
+
+1 paquete
+1 relación
+La clase Usuario tiene 2 atributos
+El método agregarUsuario tiene 1 parámetro
+
+// Ejemplo 2
+[Producto | -nombre: String; -precio: float | +getPrecio(): float; +setPrecio(precio: float)]
+[Carrito | -productos: List<Producto> | +agregarProducto(prod: Producto, cantidad: int); +eliminarProducto(prod: Producto) ]
+[Cliente | -nombre: String | +comprar(carrito: Carrito)]
+[Carrito] -- [Producto]
+[Cliente] -> [Carrito]
+
+0 paquetes
+2 relaciones
+La clase Producto tiene 2 atributos
+El método agregarProducto tiene 2 parámetros
+
+// Ejemplo 3
+[<package> Empresa | 
+    [Empleado | -nombre: String; -ID: int | +trabajar()]
+]
+[<package> Proyecto | 
+    [Tarea | -descripcion: String; -duracion: int | +completar()]
+    [Recurso | -nombre: String | ]
+]
+
+2 paquetes
+0 relaciones
+La clase Empleado tiene 2 atributos
+El método completar tiene 0 parámetros
+
+// Ejemplo 4
+[Persona | -nombre: String; -apellido: String | +getNombreCompleto(): String]
+[Empleado | -puesto: String | ] <:- [Persona]
+[Departamento | -nombre: String | ]
+[Empleado] --> [Departamento]
+[Departamento] --> [Empleado]
+
+0 paquetes
+3 relaciones
+La clase Persona tiene 2 atributos
+El método getNombreCompleto tiene 0 parámetros
+
+// Ejemplo 5
+[Controlador | | +manejarEvento(evento: Evento); +getEvento() ]
+[Vista | | +actualizar(datos: Object) ]
+[Modelo | | ]
+[Controlador] --> [Vista]
+[Vista] <-- [Modelo]
+
+0 paquetes
+2 relaciones
+No hay atributos en ninguna clase
+El método manejarEvento tiene 1 parámetro
+
+// Ejemplo 6
+[Vehiculo | -marca: String; -modelo: String | +acelerar(); +frenar()]
+[Automovil | -tipoMotor: String | ] <:- [Vehiculo]
+[Motocicleta | -cilindrada: int | ] <:- [Vehiculo]
+[Concesionario | -nombre: String | +agregarVehiculo(vehiculo: Vehiculo); +venderVehiculo(vehiculo: Vehiculo, comprador: Cliente)]
+[Cliente | -nombre: String; -edad: int | +comprar(vehiculo: Vehiculo)]
+[Cliente] --> [Concesionario]
+[Automovil] --> [Concesionario]
+[Motocicleta] --> [Concesionario]
+
+0 paquetes
+5 relaciones
+La clase Vehiculo tiene 2 atributos
+El método venderVehiculo tiene 2 parámetros
+
+// Ejemplo 7
+[<package> Biblioteca | ]
+[Libro | -titulo: String; -autor: String | +getInfo(): String]
+[Lector | -nombre: String | +leer(libro: Libro); +devolver(libro: Libro)]
+[Libro] <-- [Lector]
+
+1 paquete
+1 relación
+La clase Libro tiene 2 atributos
+El método leer tiene 1 parámetro
