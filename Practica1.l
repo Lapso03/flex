@@ -1,6 +1,5 @@
-Enunciado provisional de la primera práctica.
-
-Usando flex crear un programa para procesar diagramas UML en la 
+%{
+    /*Usando flex crear un programa para procesar diagramas UML en la 
 sintaxis de https://nomnoml.com/
 
 Realizando las operaciones necesarias para que al finalizar el 
@@ -42,83 +41,102 @@ Debería dar:
 Ante una entrada como la siguiente.
 
 // Los comentarios son en línea y no deben ser considerados
+
 [<actor> Administrador] gestiona -> [Pedido]
-
-[<actor id=client> Cliente]
-
+[<actor id=client> Cliente] 
 [client] crea -> [Pedido] <:-- [Online|dirección: String; CP: Integer]
-
 [Pedido|fecha: Date| añadir(producto, cantidad);+eliminar ( producto )] <:-- [Presencial]
-
 [Pedido] +- [Línea|-producto]
-
 [Pedido] -- [Tener en cuenta todos los posibles tipos de asociación]
 
 Debería dar:
 - Existe/n 0 paquete/s.
-- Hay 5 relaciones entre elementos.
+- Hay 5  relaciones entre elementos.
 - La clase Online tiene 2 atributos.
 - El método añadir tiene 2 parámetros.
-
-%{
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+*/
 #include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-int packages = 0, relaciones=0;
-typedef struct {            //struct para almacenar cada clase junto sus datos relacionados necesarios
+int packages = 0, relaciones = 0;
+
+typedef struct {
     char nombre[100];
     int atributos;
-    int parametros;
 } Clase;
+
+typedef struct {
+    char nombre[100];
+    int parametros;
+} Metodo;
+
+char** ignoradosList = NULL;
+int ignorados=0;
 Clase clases[10];
+Metodo metodo[10];
 int clasesEncontradas = 0;
-
-
-void process_file(const char* filename);
-void gaurdarClassData();
 
 %}
 sp[\ \t]*
 spn[\ \t\n]*
-arrow "-->"|"<->"|"o<->"|"o->"|"->o"|"o--"|"o-"|"->"|"--"|"-"|"o<-"
-%x CLASS ATRS OPS
+arrow "-"|"->"|"<->"|"-->"|"<-->"|"-:>"|"--:>"|"+-"|"\+->"|"o-"|"o->"|"->o"|"-o)"|"o<-)"|"<-"|"<--"|"<:-"|"<:--"|"-+"|"<-\+"|"-o"|"<-o"|"o<-"|"o)-<"|"o(-"
+word [A-Za-z0-9]+
+words [A-Za-z0-9\ ]+
+
+%x CLASS ATRS OPS DESC IGN
 %%
-<INITIAL>"["[^<] {BEGIN(CLASS);clasesEncontradas++;};
-<INITIAL>"["{sp}"<package>" {packages++;};
+
+<INITIAL>"[" {yyless(1);BEGIN(CLASS);};
+<INITIAL>"--"{sp}\[{words}\] {};
 <INITIAL>{arrow} {relaciones++;};
-<CLASS>[^|]]+ {free(clases[clasesEncontradas-1].nombre); clases[clasesEncontradas -1].nombre = strdup(yytext);};
+<CLASS>< {BEGIN(DESC);};
+<CLASS>[^\|\]\<\>]+ {strcpy(clases[clasesEncontradas].nombre, yytext);clasesEncontradas++;};
 <CLASS>"|" BEGIN(ATRS);
 <CLASS>"]" BEGIN(INITIAL);
+<DESC>id= {BEGIN(IGN);};
+<DESC>{sp}*[A-Za-z0-9]+\> {if (strcmp(yytext, "package>") == 0){packages++;BEGIN(INITIAL);}
+                            else{BEGIN(IGN);}
+                            ;};
+<IGN>[A-Za-z0-9]+({sp}+)?[^\\\>\]] {
+                    ignoradosList = (char**)realloc(ignoradosList, (ignorados + 1) * sizeof(char*));
+                    ignoradosList[ignorados] = (char*)malloc((strlen(yytext) + 1) * sizeof(char));
+                    strcpy(ignoradosList[ignorados], yytext);
+                    ignorados++;
+                    BEGIN(INITIAL);};
+<ATRS>{word}\:{sp}*{word}\: {clases[clasesEncontradas - 1].atributos++;};
 <ATRS>"|" BEGIN(OPS);
 <ATRS>"]" BEGIN(INITIAL);
-<OPS>"}" BEGIN(INITIAL);
+<OPS>"]" BEGIN(INITIAL);
 <*>^"//".*\n;
 <*>.\n;
+
 %%
-void process_file(const char* filename) {
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        fprintf(stderr, "No se pudo abrir el archivo: %s\n", filename);
-        exit(1);
-    }
-    yyin = file;
-    yylex();
-    fclose(file);
-}
 
-void gaurdarClassData(){
+bool comprobarIgnorable(){
 
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
+    ignoradosList = (char**)realloc(ignoradosList, (1) * sizeof(char*));
     if (argc > 1) {
-        process_file(argv[1]);
+        FILE *file = fopen(argv[1], "r");
+        if (!file) {
+            fprintf(stderr, "No se pudo abrir el archivo: %s\n", argv[1]);
+            exit(1);
+        }
+        yyin = file;
+        yylex();
+        fclose(file);
     } else {
         yylex();
     }
-
+    printf("\nPalabras ignoradas:\n");
+    for (int i = 0; i < ignorados; i++) {
+        printf("%s\n", ignoradosList[i]);
+        free(ignoradosList[i]);
+    }
     printf("\nExiste/n %d paquete/s.\n", packages);
     printf("Hay %d relaciones entre elementos.\n", relaciones);
     return 0;
