@@ -1,6 +1,6 @@
 [<actor> Administrador] gestiona -> [Pedido]
 [<actor id=client> Cliente] 
-[client] crea -> [Pedido] <:-- [Online|dirección: String; CP: Integer]
-[Pedido|fecha: Date| añadir(producto, cantidad);+eliminar ( producto )] <:-- [Presencial]
+[client] crea -> [Pedido] <:-- [Online|direccion: String; CP: Integer]
+[Pedido|fecha: Date| anadir(producto, cantidad);+eliminar ( producto )] <:-- [Presencial]
 [Pedido] +- [Línea|-producto]
 [Pedido] -- [Tener en cuenta todos los posibles tipos de asociación]

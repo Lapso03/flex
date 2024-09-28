@@ -60,22 +60,24 @@ Debería dar:
 #include <stdlib.h>
 #include <stdio.h>
 
+#define CP(from, to) {free(from); from = strdup(to);}
+
 int packages = 0, relaciones = 0;
 
-typedef struct {
-    char nombre[100];
-    int atributos;
-} Clase;
+char *claseEstudio;
+int atributosEstudio=0;
 
-typedef struct {
-    char nombre[100];
-    int parametros;
-} Metodo;
+char *nombreClase;
+int claseAtributos=0;
+
+char *metodoEstudio;
+int parametrosEstudio=0;
+
+char *nombreMetodo;
+int metodoParametros=0;
 
 char** ignoradosList = NULL;
 int ignorados=0;
-Clase clases[10];
-Metodo metodo[10];
 int clasesEncontradas = 0;
 
 %}
@@ -84,15 +86,16 @@ spn[\ \t\n]*
 arrow "-"|"->"|"<->"|"-->"|"<-->"|"-:>"|"--:>"|"+-"|"\+->"|"o-"|"o->"|"->o"|"-o)"|"o<-)"|"<-"|"<--"|"<:-"|"<:--"|"-+"|"<-\+"|"-o"|"<-o"|"o<-"|"o)-<"|"o(-"
 word [A-Za-z0-9]+
 words [A-Za-z0-9\ ]+
+simbolo [\+]
 
-%x CLASS ATRS OPS DESC IGN
+%x CLASS ATRS OPS NOPS DESC IGN
 %%
 
 <INITIAL>"[" {yyless(1);BEGIN(CLASS);};
 <INITIAL>"--"{sp}\[{words}\] {};
 <INITIAL>{arrow} {relaciones++;};
 <CLASS>< {BEGIN(DESC);};
-<CLASS>[^\|\]\<\>]+ {strcpy(clases[clasesEncontradas].nombre, yytext);clasesEncontradas++;};
+<CLASS>[^\|\]\<\>]+ {CP(claseEstudio, yytext);};
 <CLASS>"|" BEGIN(ATRS);
 <CLASS>"]" BEGIN(INITIAL);
 <DESC>id= {BEGIN(IGN);};
@@ -105,18 +108,71 @@ words [A-Za-z0-9\ ]+
                     strcpy(ignoradosList[ignorados], yytext);
                     ignorados++;
                     BEGIN(INITIAL);};
-<ATRS>{word}\:{sp}*{word}\: {clases[clasesEncontradas - 1].atributos++;};
+<ATRS>{word}\:{sp}{word}[^\;\]\|] {atributosEstudio++;};
 <ATRS>"|" BEGIN(OPS);
-<ATRS>"]" BEGIN(INITIAL);
-<OPS>"]" BEGIN(INITIAL);
+<ATRS>"]" BEGIN(INITIAL); //TODO añadir codigo c
+<OPS>{sp}{simbolo}?{word}(({sp}{word})+)?[^\(\)\ ] {CP(metodoEstudio, yytext);BEGIN(NOPS);};
+<NOPS>\; {BEGIN(OPS);};
+<NOPS>"]" BEGIN(INITIAL);//TODO añadir codigo c
+<NOPS>\(?({sp}?{word})*[^\,\)] {metodoParametros++;};
 <*>^"//".*\n;
 <*>.\n;
 
 %%
-
-bool comprobarIgnorable(){
-
+/* 
+bool comprobarIgnorable() {
+for (int i = 0; i < ignorados; i++)
+{
+    if (strcmp(yytext, ignoradosList[i]) == 0 and ignoradosList[i] not in clases or metodo)
+    {
+        return true;
+    }
 }
+return false;
+}
+
+String claseConMasAtributos()
+{
+    int max = 0;
+    String clase = "";
+    for (int i = 0; i < clasesEncontradas; i++)
+    {
+        if (clases[i].atributos > max)
+        {
+            max = clases[i].atributos;
+            clase = clases[i].nombre;
+        }
+    }
+    return clase;
+}
+
+int numAtributos() :
+{
+    int max = 0;
+    for (int i = 0; i < clasesEncontradas; i++)
+    {
+        if (clases[i].atributos > max)
+        {
+            max = clases[i].atributos;
+        }
+    }
+    return max;
+}
+
+String metodoConMasParametros()
+{
+    int max = 0;
+    String metodo = "";
+    for (int i = 0; i < clasesEncontradas; i++)
+    {
+        if (metodo[i].parametros > max)
+        {
+            max = metodo[i].parametros;
+            metodo = metodo[i].nombre;
+        }
+    }
+    return metodo;
+} */
 
 int main(int argc, char** argv) {
     ignoradosList = (char**)realloc(ignoradosList, (1) * sizeof(char*));
