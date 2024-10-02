@@ -51,7 +51,7 @@ Ante una entrada como la siguiente.
 
 Debería dar:
 - Existe/n 0 paquete/s.
-- Hay 5  relaciones entre elementos.
+- Hay 5 relaciones entre elementos.
 - La clase Online tiene 2 atributos.
 - El método añadir tiene 2 parámetros.
 */
@@ -62,120 +62,77 @@ Debería dar:
 
 #define CP(from, to) {free(from); from = strdup(to);}
 
+void claseConMasAtributos();
+void metodoConMasParametros();
+
 int packages = 0, relaciones = 0;
 
-char *claseEstudio;
-int atributosEstudio=0;
+char *casoEstudio;
+int numEstudio=0;
 
 char *nombreClase;
-int claseAtributos=0;
-
-char *metodoEstudio;
-int parametrosEstudio=0;
+int atributosClase=0;
 
 char *nombreMetodo;
-int metodoParametros=0;
-
-char** ignoradosList = NULL;
-int ignorados=0;
-int clasesEncontradas = 0;
+int parametrosMetodo=0;
 
 %}
 sp[\ \t]*
 spn[\ \t\n]*
 arrow "-"|"->"|"<->"|"-->"|"<-->"|"-:>"|"--:>"|"+-"|"\+->"|"o-"|"o->"|"->o"|"-o)"|"o<-)"|"<-"|"<--"|"<:-"|"<:--"|"-+"|"<-\+"|"-o"|"<-o"|"o<-"|"o)-<"|"o(-"
-word [A-Za-z0-9]+
-words [A-Za-z0-9\ ]+
+word [A-Za-z0-9á-ñé]+
+words [A-Za-z0-9á-ñé\ ]+
+wordsSimbols[A-za-z0-9á-ñé\ \+\-\*\/\%\&\|\^\!\=\<\>\~\?]+
 simbolo [\+]
 
-%x CLASS ATRS OPS NOPS DESC IGN
+%x CLASS ATRS OPS NOPS DESC
 %%
-
+<INITIAL>\-\- {};
 <INITIAL>"[" {yyless(1);BEGIN(CLASS);};
-<INITIAL>"--"{sp}\[{words}\] {};
 <INITIAL>{arrow} {relaciones++;};
 <CLASS>< {BEGIN(DESC);};
-<CLASS>[^\|\]\<\>]+ {CP(claseEstudio, yytext);};
+<CLASS>[^\|\]\<\>]+ {CP(casoEstudio, yytext);printf("Clase: %s\n", casoEstudio);};
 <CLASS>"|" BEGIN(ATRS);
 <CLASS>"]" BEGIN(INITIAL);
-<DESC>id= {BEGIN(IGN);};
-<DESC>{sp}*[A-Za-z0-9]+\> {if (strcmp(yytext, "package>") == 0){packages++;BEGIN(INITIAL);}
-                            else{BEGIN(IGN);}
-                            ;};
-<IGN>[A-Za-z0-9]+({sp}+)?[^\\\>\]] {
-                    ignoradosList = (char**)realloc(ignoradosList, (ignorados + 1) * sizeof(char*));
-                    ignoradosList[ignorados] = (char*)malloc((strlen(yytext) + 1) * sizeof(char));
-                    strcpy(ignoradosList[ignorados], yytext);
-                    ignorados++;
-                    BEGIN(INITIAL);};
-<ATRS>{word}\:{sp}{word}[^\;\]\|] {atributosEstudio++;};
-<ATRS>"|" BEGIN(OPS);
-<ATRS>"]" BEGIN(INITIAL); //TODO añadir codigo c
-<OPS>{sp}{simbolo}?{word}(({sp}{word})+)?[^\(\)\ ] {CP(metodoEstudio, yytext);BEGIN(NOPS);};
-<NOPS>\; {BEGIN(OPS);};
-<NOPS>"]" BEGIN(INITIAL);//TODO añadir codigo c
-<NOPS>\(?({sp}?{word})*[^\,\)] {metodoParametros++;};
+<DESC>{sp}*[A-Za-z0-9]+\> {if (strcmp(yytext, "package>") == 0){packages++;};BEGIN(INITIAL);}
+<ATRS>{words}\:{words}[^\;\]\|] {numEstudio++;}; 
+<ATRS>"|" {claseConMasAtributos();BEGIN(OPS);}
+<ATRS>"]" {claseConMasAtributos();BEGIN(INITIAL);} //TODO añadir metodo atributos
+<OPS>{sp}"]" BEGIN(INITIAL);
+<OPS>\:{sp}{wordsSimbols}+[\;\)\]] {}
+<OPS>{word}+ {CP(casoEstudio, yytext);BEGIN(NOPS);};
+<NOPS>")" {metodoConMasParametros();BEGIN(OPS);}
+<NOPS>({words})+\:{words} {numEstudio++;};//TODO añadir metodo parametros
 <*>^"//".*\n;
 <*>.\n;
 
 %%
-/* 
-bool comprobarIgnorable() {
-for (int i = 0; i < ignorados; i++)
+void claseConMasAtributos()
 {
-    if (strcmp(yytext, ignoradosList[i]) == 0 and ignoradosList[i] not in clases or metodo)
+    printf("Clase: %s\n", casoEstudio);
+    if (numEstudio > atributosClase)
     {
-        return true;
+        atributosClase = numEstudio;
+        nombreClase = strdup(casoEstudio);
     }
-}
-return false;
-}
-
-String claseConMasAtributos()
-{
-    int max = 0;
-    String clase = "";
-    for (int i = 0; i < clasesEncontradas; i++)
-    {
-        if (clases[i].atributos > max)
-        {
-            max = clases[i].atributos;
-            clase = clases[i].nombre;
-        }
-    }
-    return clase;
+    numEstudio = 0;
+    printf("nombreClase: %s, numero atributos %d\n", nombreClase, atributosClase);
 }
 
-int numAtributos() :
+void metodoConMasParametros()
 {
-    int max = 0;
-    for (int i = 0; i < clasesEncontradas; i++)
+    printf("Metodo: %s\n", casoEstudio);
+    if (numEstudio > parametrosMetodo)
     {
-        if (clases[i].atributos > max)
-        {
-            max = clases[i].atributos;
-        }
+        parametrosMetodo = numEstudio;
+        nombreMetodo = strdup(casoEstudio);
     }
-    return max;
+    numEstudio = 0;
+    printf("nombreMetodo: %s, numero paramteros: %d\n", nombreMetodo, parametrosMetodo);
 }
 
-String metodoConMasParametros()
-{
-    int max = 0;
-    String metodo = "";
-    for (int i = 0; i < clasesEncontradas; i++)
-    {
-        if (metodo[i].parametros > max)
-        {
-            max = metodo[i].parametros;
-            metodo = metodo[i].nombre;
-        }
-    }
-    return metodo;
-} */
 
 int main(int argc, char** argv) {
-    ignoradosList = (char**)realloc(ignoradosList, (1) * sizeof(char*));
     if (argc > 1) {
         FILE *file = fopen(argv[1], "r");
         if (!file) {
@@ -188,12 +145,9 @@ int main(int argc, char** argv) {
     } else {
         yylex();
     }
-    printf("\nPalabras ignoradas:\n");
-    for (int i = 0; i < ignorados; i++) {
-        printf("%s\n", ignoradosList[i]);
-        free(ignoradosList[i]);
-    }
     printf("\nExiste/n %d paquete/s.\n", packages);
     printf("Hay %d relaciones entre elementos.\n", relaciones);
+    printf("La clase %s tiene %d atributos.\n", nombreClase, atributosClase);
+    printf("El método %s tiene %d parámetros.\n", nombreMetodo , parametrosMetodo);
     return 0;
 }
