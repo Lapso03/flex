@@ -88,47 +88,43 @@ simbolo [\+]
 %x CLASS ATRS OPS NOPS DESC
 %%
 <INITIAL>\-\- {};
-<INITIAL>"[" {yyless(1);BEGIN(CLASS);};
-<INITIAL>{arrow} {relaciones++;};
-<CLASS>< {BEGIN(DESC);};
-<CLASS>[^\|\]\<\>]+ {CP(casoEstudio, yytext);printf("Clase: %s\n", casoEstudio);};
+<INITIAL>"[" {yyless(1);BEGIN(CLASS);}
+<INITIAL>{arrow} {relaciones++;}
+<CLASS>< {BEGIN(DESC);}
+<CLASS>[^\|\]\<\>]+ {CP(casoEstudio, yytext);}
 <CLASS>"|" BEGIN(ATRS);
 <CLASS>"]" BEGIN(INITIAL);
 <DESC>{sp}*[A-Za-z0-9]+\> {if (strcmp(yytext, "package>") == 0){packages++;};BEGIN(INITIAL);}
-<ATRS>{words}\:{words}[^\;\]\|] {numEstudio++;}; 
+<ATRS>{words}(\:{words})?[^\;\]\|] {numEstudio++;}
 <ATRS>"|" {claseConMasAtributos();BEGIN(OPS);}
-<ATRS>"]" {claseConMasAtributos();BEGIN(INITIAL);} //TODO añadir metodo atributos
+<ATRS>"]" {claseConMasAtributos();BEGIN(INITIAL);}
 <OPS>{sp}"]" BEGIN(INITIAL);
 <OPS>\:{sp}{wordsSimbols}+[\;\)\]] {}
-<OPS>{word}+ {CP(casoEstudio, yytext);BEGIN(NOPS);};
+<OPS>{word}+ {CP(casoEstudio, yytext);BEGIN(NOPS);}
 <NOPS>")" {metodoConMasParametros();BEGIN(OPS);}
-<NOPS>({words})+\:{words} {numEstudio++;};//TODO añadir metodo parametros
-<*>^"//".*\n;
-<*>.\n;
+<NOPS>{words} {numEstudio++;};
+<*>^"//".*\n {};
+<*>.(\n)? {};
 
 %%
 void claseConMasAtributos()
 {
-    printf("Clase: %s\n", casoEstudio);
     if (numEstudio > atributosClase)
     {
         atributosClase = numEstudio;
         nombreClase = strdup(casoEstudio);
     }
     numEstudio = 0;
-    printf("nombreClase: %s, numero atributos %d\n", nombreClase, atributosClase);
 }
 
 void metodoConMasParametros()
 {
-    printf("Metodo: %s\n", casoEstudio);
     if (numEstudio > parametrosMetodo)
     {
         parametrosMetodo = numEstudio;
         nombreMetodo = strdup(casoEstudio);
     }
     numEstudio = 0;
-    printf("nombreMetodo: %s, numero paramteros: %d\n", nombreMetodo, parametrosMetodo);
 }
 
 
