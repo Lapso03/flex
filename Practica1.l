@@ -80,8 +80,8 @@ int parametrosMetodo=0;
 sp[\ \t]*
 spn[\ \t\n]*
 arrow "-"|"->"|"<->"|"-->"|"<-->"|"-:>"|"--:>"|"+-"|"\+->"|"o-"|"o->"|"->o"|"-o)"|"o<-)"|"<-"|"<--"|"<:-"|"<:--"|"-+"|"<-\+"|"-o"|"<-o"|"o<-"|"o)-<"|"o(-"
-word [A-Za-z0-9á-ñé]+
-words [A-Za-z0-9á-ñé\ ]+
+word [A-Za-z0-9áéíóúñ]+
+
 wordsSimbols[A-za-z0-9á-ñé\ \+\-\*\/\%\&\|\^\!\=\<\>\~\?]+
 simbolo [\+]
 
@@ -95,34 +95,39 @@ simbolo [\+]
 <CLASS>"|" BEGIN(ATRS);
 <CLASS>"]" BEGIN(INITIAL);
 <DESC>{sp}*[A-Za-z0-9]+\> {if (strcmp(yytext, "package>") == 0){packages++;};BEGIN(INITIAL);}
-<ATRS>{words}(\:{words})?[^\;\]\|] {numEstudio++;}
+<ATRS>({word}{sp})+(\:{sp}({word}{sp})+)?[^\;\]\|] {numEstudio++;}
 <ATRS>"|" {claseConMasAtributos();BEGIN(OPS);}
 <ATRS>"]" {claseConMasAtributos();BEGIN(INITIAL);}
 <OPS>{sp}"]" BEGIN(INITIAL);
 <OPS>\:{sp}{wordsSimbols}+[\;\)\]] {}
 <OPS>{word}+ {CP(casoEstudio, yytext);BEGIN(NOPS);}
 <NOPS>")" {metodoConMasParametros();BEGIN(OPS);}
-<NOPS>{words} {numEstudio++;};
+<NOPS>({word}{sp})+(\:{sp}{word})? {numEstudio++;};
 <*>^"//".*\n {};
 <*>.(\n)? {};
 
 %%
 void claseConMasAtributos()
 {
+
     if (numEstudio > atributosClase)
     {
         atributosClase = numEstudio;
         nombreClase = strdup(casoEstudio);
+        
     }
     numEstudio = 0;
 }
 
 void metodoConMasParametros()
 {
+    printf("ACTUALMENTE: metodo nombre: %s, parametros %d\n", nombreMetodo, parametrosMetodo);
+    printf("clase nombre: %s, atributos %d\n", casoEstudio, numEstudio);
     if (numEstudio > parametrosMetodo)
     {
         parametrosMetodo = numEstudio;
         nombreMetodo = strdup(casoEstudio);
+        printf("Cambio a: metodo nombre: %s, atributos %d\n", nombreMetodo, parametrosMetodo);
     }
     numEstudio = 0;
 }

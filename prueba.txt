@@ -1,6 +1,6 @@
-[<package> Modelo | 
-[Tablero | -matriz : Celda | + Tablero (filas: int, columnas: int) ; + toString() ] -> 
-[Celda | | + Celda( coordenada : Coordenada) ] -> [ 
-Pieza | | +Pieza (color:Color)]->[Color]
-[Jugador|nombre:String|Jugador(nombre:String,color:Color)]->[Color||]
-[Celda] -> [Coordenada] ]
+[<actor> Administrador] gestiona -> [Pedido]
+[<actor id=client> Cliente] 
+[client] crea -> [Pedido] <:-- [Online|dirección: String; CP: Integer]
+[Pedido|fecha: Date| añadir(producto, cantidad);+eliminar ( producto )] <:-- [Presencial]
+[Pedido] +- [Línea|-producto]
+[Pedido] -- [Tener en cuenta todos los posibles tipos de asociación]
