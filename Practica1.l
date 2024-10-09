@@ -83,7 +83,6 @@ arrow "-"|"->"|"<->"|"-->"|"<-->"|"-:>"|"--:>"|"+-"|"\+->"|"o-"|"o->"|"->o"|"-o)
 word [A-Za-z0-9áéíóúñ]+
 
 wordsSimbols[A-za-z0-9á-ñé\ \+\-\*\/\%\&\|\^\!\=\<\>\~\?]+
-simbolo [\+]
 
 %x CLASS ATRS OPS NOPS DESC
 %%
@@ -104,7 +103,7 @@ simbolo [\+]
 <NOPS>")" {metodoConMasParametros();BEGIN(OPS);}
 <NOPS>({word}{sp})+(\:{sp}{word})? {numEstudio++;};
 <*>^"//".*\n {};
-<*>.(\n)? {};
+<*>.|\n {};
 
 %%
 void claseConMasAtributos()
